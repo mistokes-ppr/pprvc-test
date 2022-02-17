@@ -1,0 +1,4 @@
+{
+    "appService.defaultWebAppToDeploy": "/subscriptions/7b416047-5877-4003-95b2-5e5109079b53/resourceGroups/PPRVC/providers/Microsoft.Web/sites/pprvc-test",
+    "appService.deploySubpath": "."
+}
