@@ -19,36 +19,40 @@ from cryptography.x509 import load_pem_x509_certificate
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from flask import Flask
-app = Flask(__name__) # Flask instance named app
+
+app = Flask(__name__, static_url_path='',static_folder='static') # Flask instance named app
 cacheConfig = {
     "DEBUG": True,          # some Flask specific configs
     "CACHE_TYPE": "SimpleCache",  # Flask-Caching related configs
     "CACHE_DEFAULT_TIMEOUT": 300
 }
-app = Flask(__name__,static_url_path='',static_folder='static')
-app.secret_key = '61U7Q~B0qmpNP8~sWHn7_K1t1V1QPeCRiCtBA'
-app.config['SESSION_TYPE'] = 'filesystem'
-Session(app)
-
 app.config.from_mapping(cacheConfig)
 cache = Cache(app)
 
-app.config.from_object(app.config)
+app.secret_key = '61U7Q~B0qmpNP8~sWHn7_K1t1V1QPeCRiCtBA'
+
+#app.config.from_object(app.config)
+
+appConfig = {
+    "CLIENT_SECRET": "61U7Q~B0qmpNP8~sWHn7_K1t1V1QPeCRiCtBA",
+    "AUTHORITY": "https://login.microsoftonline.com/patientprivacyrights.org",
+    "CLIENT_ID": "c0110ac6-c1c1-4827-aefc-9b1eccb45adb",
+    "ENDPOINT": "https://graph.microsoft.com/v1.0/users",
+    "SCOPE": ["User.Read"],
+    "REDIRECT_PATH": "/getAToken",
+    "SESSION_TYPE": "filesystem", 
+}
+app.config.from_mapping(appConfig)
+config = json.load(open("./config.json"))
+
+Session(app)
 
 from werkzeug.middleware.proxy_fix import ProxyFix
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 log = logging.getLogger() 
 log.setLevel(logging.INFO)
 
-config = json.load(open("./config.json"))
-app.config.update(
-    SECRET_KEY=config["CLIENT_SECRET"],
-    AUTHORITY=config["AUTHORITY"],
-    ENDPOINT=config["ENDPOINT"],
-    SCOPE=config["SCOPE"],
-    SESSION_TYPE= config["SESSION_TYPE"],
-    REDIRECT_PATH=config["REDIRECT_PATH"]
-)
+
 
 msalCca = msal.ConfidentialClientApplication( config["azClientId"], 
     authority="https://login.microsoftonline.com/" + config["azTenantId"],
