@@ -45,7 +45,8 @@ app.config.update(
     AUTHORITY=config["AUTHORITY"],
     ENDPOINT=config["ENDPOINT"],
     SCOPE=config["SCOPE"],
-    SESSION_TYPE= config["SESSION_TYPE"]
+    SESSION_TYPE= config["SESSION_TYPE"],
+    REDIRECT_PATH=config["REDIRECT_PATH"]
 )
 
 
@@ -302,7 +303,7 @@ def login():
 def authorized():
     try:
         cache = _load_cache()
-        result = _build_msal_app(cache=cache).acquire_token_by_auth_code_flow(
+        result = _build_msal_app(cache).acquire_token_by_auth_code_flow(
             session.get("flow", {}), request.args)
         if "error" in result:
             return render_template("auth_error.html", result=result)
@@ -317,12 +318,13 @@ def logout():
     session["user"] = None  # Log out from this app from its session
     # session.clear()  # If you prefer, this would nuke the user's token cache too
     return redirect(  # Also need to logout from Microsoft Identity platform
-        "https://login.microsoftonline.com/common/oauth2/v2.0/logout"
+        "https://login.microsoftonline.com/"
+        + config["azTenantId"] + "/oauth2/v2.0/logout"
         "?post_logout_redirect_uri=" + url_for("index"))
 
 @app.route("/graphcall")
 def graphcall():
-    token = _get_token_from_cache(app.configSCOPE)
+    token = _get_token_from_cache(app.config["SCOPE"])
     if not token:
         return redirect(url_for("login"))
     graph_data = requests.get(  # Use token to call downstream service
@@ -347,11 +349,11 @@ def _build_msal_app(cache=None):
         config["azClientId"], authority=app.config["AUTHORITY"],
         client_credential=config["azClientSecret"], token_cache=cache)
 
-def _build_auth_code_flow(authority=None, scopes=None):
-    return _build_msal_app(authority=authority).initiate_auth_code_flow(
+def _build_auth_code_flow(scopes=None):
+    return _build_msal_app(cache=_load_cache()).initiate_auth_code_flow(
         scopes or [],
         redirect_uri=url_for("authorized", _external=True))
-        
+
 def _get_token_from_cache(scope=None):
     cache = _load_cache()  # This web app maintains one cache per session
     cca = _build_msal_app(cache)
