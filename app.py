@@ -286,10 +286,9 @@ def presentationResponseB2C():
     #return app.send_static_file('index.html')
 
 def index():
-    uservalue = session.get("user")
     #if not session.get("user"):
     #    return redirect(url_for("login"))
-    return render_template('index.html', name="hello") #, user=session["user"])
+    return render_template('index.html', user=session["user"])
 
 @app.route("/login")
 def login():
