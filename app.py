@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from flask import Flask
+from flask import Flask, render_template
 from flask import request,Response,redirect
 from flask import render_template, url_for, session
 from flask_session import Session
@@ -27,7 +27,7 @@ cacheConfig = {
 app = Flask(__name__,static_url_path='',static_folder='static',template_folder='static')
 app.secret_key = '61U7Q~B0qmpNP8~sWHn7_K1t1V1QPeCRiCtBA'
 app.config['SESSION_TYPE'] = 'filesystem'
-Session(app)
+sessionvalue = Session(app)
 app.config.from_mapping(cacheConfig)
 cache = Cache(app)
 
@@ -280,16 +280,16 @@ def presentationResponseB2C():
 
 
 @app.route('/')
-def root():
-    varvalue="testing"
-    return render_template('index.html')
+#def root():
+#    varvalue="testing"
+#    return render_template('index.html')
     #return app.send_static_file('index.html')
 
 def index():
-
+    uservalue = session.get("user")
     #if not session.get("user"):
     #    return redirect(url_for("login"))
-    return render_template('index.html', user=session["user"])
+    return render_template('index.html', name="hello") #, user=session["user"])
 
 @app.route("/login")
 def login():
