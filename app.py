@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+from contextlib import nullcontext
 from flask import Flask, render_template
 from flask import request,Response,redirect
 from flask import render_template, url_for, session
@@ -48,7 +49,6 @@ app.config.update(
     SESSION_TYPE= config["SESSION_TYPE"],
     REDIRECT_PATH=config["REDIRECT_PATH"]
 )
-
 
 msalCca = msal.ConfidentialClientApplication( config["azClientId"], 
     authority="https://login.microsoftonline.com/" + config["azTenantId"],
@@ -104,8 +104,11 @@ def issuanceRequest():
     if "pin" in payload["issuance"] is not None:
         pinCode = ''.join(str(randint(0,9)) for _ in range(int(payload["issuance"]["pin"]["length"])))
         payload["issuance"]["pin"]["value"] = pinCode
-    payload["issuance"]["claims"]["given_name"] = "Michael"
-    payload["issuance"]["claims"]["family_name"] = "Stokes"
+    if not session.get("user"):
+        return redirect(url_for("login"))
+    user = session["user"]
+    payload["issuance"]["claims"]["given_name"] = user["given_name"]
+    payload["issuance"]["claims"]["family_name"] = user["family_name"]
     print( json.dumps(payload) )
     post_headers = { "content-type": "application/json", "Authorization": "Bearer " + accessToken }
     client_api_request_endpoint = "https://beta.did.msidentity.com/v1.0/" + config["azTenantId"] + "/verifiablecredentials/request"
@@ -290,7 +293,9 @@ def presentationResponseB2C():
 def index():
     if not session.get("user"):
         return redirect(url_for("login"))
-    return render_template('index.html', user=session["user"])
+    user = session["user"]
+
+    return render_template('index.html', given_name=user["given_name"], family_name=user["family_name"])
 
 @app.route("/login")
 def login():
@@ -319,8 +324,8 @@ def logout():
     # session.clear()  # If you prefer, this would nuke the user's token cache too
     return redirect(  # Also need to logout from Microsoft Identity platform
         "https://login.microsoftonline.com/"
-        + config["azTenantId"] + "/oauth2/v2.0/logout"
-        "?post_logout_redirect_uri=" + url_for("index"))
+        + config["azTenantId"] + "/oauth2/v2.0/logout")
+#        "?post_logout_redirect_uri=" + url_for("index"))
 
 @app.route("/graphcall")
 def graphcall():
