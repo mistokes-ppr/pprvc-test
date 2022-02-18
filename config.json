@@ -3,7 +3,7 @@
     "AUTHORITY": "https://login.microsoftonline.com/patientprivacyrights.org",
     "CLIENT_ID": "c0110ac6-c1c1-4827-aefc-9b1eccb45adb",
     "ENDPOINT": "https://graph.microsoft.com/v1.0/users",
-    "SCOPE": ["User.ReadBasic.All"],
+    "SCOPE": ["User.Read"],
     "REDIRECT_PATH": "/getAToken",
     "SESSION_TYPE": "filesystem", 
     "azTenantId": "2c72ccb8-5d68-44b4-8d4a-fe4c377b3e3d",
