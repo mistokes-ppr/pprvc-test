@@ -24,16 +24,7 @@ app = Flask(__name__, static_url_path='',static_folder='static') # Flask instanc
 cacheConfig = {
     "DEBUG": True,          # some Flask specific configs
     "CACHE_TYPE": "SimpleCache",  # Flask-Caching related configs
-    "CACHE_DEFAULT_TIMEOUT": 300
-}
-app.config.from_mapping(cacheConfig)
-cache = Cache(app)
-
-app.secret_key = '61U7Q~B0qmpNP8~sWHn7_K1t1V1QPeCRiCtBA'
-
-#app.config.from_object(app.config)
-
-appConfig = {
+    "CACHE_DEFAULT_TIMEOUT": 300,
     "CLIENT_SECRET": "61U7Q~B0qmpNP8~sWHn7_K1t1V1QPeCRiCtBA",
     "AUTHORITY": "https://login.microsoftonline.com/patientprivacyrights.org",
     "CLIENT_ID": "c0110ac6-c1c1-4827-aefc-9b1eccb45adb",
@@ -42,7 +33,12 @@ appConfig = {
     "REDIRECT_PATH": "/getAToken",
     "SESSION_TYPE": "filesystem", 
 }
-app.config.from_mapping(appConfig)
+app.config.from_mapping(cacheConfig)
+
+cache = Cache(app)
+
+app.secret_key = '61U7Q~B0qmpNP8~sWHn7_K1t1V1QPeCRiCtBA'
+
 config = json.load(open("./config.json"))
 
 Session(app)
