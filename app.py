@@ -25,12 +25,12 @@ cacheConfig = {
     "DEBUG": True,          # some Flask specific configs
     "CACHE_TYPE": "SimpleCache",  # Flask-Caching related configs
     "CACHE_DEFAULT_TIMEOUT": 300,
-    "CLIENT_SECRET": "61U7Q~B0qmpNP8~sWHn7_K1t1V1QPeCRiCtBA",
+   "CLIENT_SECRET": "61U7Q~B0qmpNP8~sWHn7_K1t1V1QPeCRiCtBA",
     "AUTHORITY": "https://login.microsoftonline.com/patientprivacyrights.org",
-    "CLIENT_ID": "c0110ac6-c1c1-4827-aefc-9b1eccb45adb",
+   "CLIENT_ID": "c0110ac6-c1c1-4827-aefc-9b1eccb45adb",
     "ENDPOINT": "https://graph.microsoft.com/v1.0/users",
     "SCOPE": ["User.Read"],
-    "REDIRECT_PATH": "/getAToken",
+    "REDIRECT_PATH": "/getAToken" ,
     "SESSION_TYPE": "filesystem", 
 }
 app.config.from_mapping(cacheConfig)
