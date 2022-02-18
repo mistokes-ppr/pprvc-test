@@ -24,10 +24,11 @@ cacheConfig = {
     "CACHE_TYPE": "SimpleCache",  # Flask-Caching related configs
     "CACHE_DEFAULT_TIMEOUT": 300
 }
-app = Flask(__name__,static_url_path='',static_folder='static',template_folder='static')
+app = Flask(__name__,static_url_path='',static_folder='static')
 app.secret_key = '61U7Q~B0qmpNP8~sWHn7_K1t1V1QPeCRiCtBA'
 app.config['SESSION_TYPE'] = 'filesystem'
-sessionvalue = Session(app)
+Session(app)
+
 app.config.from_mapping(cacheConfig)
 cache = Cache(app)
 
@@ -286,34 +287,29 @@ def presentationResponseB2C():
     #return app.send_static_file('index.html')
 
 def index():
-    #if not session.get("user"):
-    #    return redirect(url_for("login"))
+    if not session.get("user"):
+        return redirect(url_for("login"))
     return render_template('index.html', user=session["user"])
 
 @app.route("/login")
 def login():
-    session["state"] = str(uuid.uuid4())
-    auth_url = _build_msal_app().get_authorization_request_url(
-        app.config["SCOPE"],  # Technically we can use empty list [] to just sign in,
-                           # here we choose to also collect end user consent upfront
-        state=session["state"],
-        redirect_uri=url_for("authorized", _external=True, _scheme='https'))
-    return "<a href='%s'>Login with Microsoft Identity</a>" % auth_url
+    # Technically we could use empty list [] as scopes to do just sign in,
+    # here we choose to also collect end user consent upfront
+    session["flow"] = _build_auth_code_flow(scopes=app.config["SCOPE"])
+    return render_template("login.html", auth_url=session["flow"]["auth_uri"], version=msal.__version__)
 
-@app.route("/getAToken")  # Its absolute URL must match your app's redirect_uri set in AAD
+@app.route(app.config["REDIRECT_PATH"])  # Its absolute URL must match your app's redirect_uri set in AAD
 def authorized():
-    if request.args['state'] != session.get("state"):
-        return redirect(url_for("login", _scheme='https'))
-    cache = _load_cache()
-    result = _build_msal_app(cache).acquire_token_by_authorization_code(
-        request.args['code'],
-        scopes=app.config["SCOPE"],  # Misspelled scope would cause an HTTP 400 error here
-        redirect_uri=url_for("authorized", _external=True, _scheme='https'))
-    if "error" in result:
-        return "Login failure: %s, %s" % (
-            result["error"], result.get("error_description"))
-    session["user"] = result.get("id_token_claims")
-    _save_cache(cache)
+    try:
+        cache = _load_cache()
+        result = _build_msal_app(cache=cache).acquire_token_by_auth_code_flow(
+            session.get("flow", {}), request.args)
+        if "error" in result:
+            return render_template("auth_error.html", result=result)
+        session["user"] = result.get("id_token_claims")
+        _save_cache(cache)
+    except ValueError:  # Usually caused by CSRF
+        pass  # Simply ignore them
     return redirect(url_for("index"))
 
 @app.route("/logout")
@@ -351,6 +347,11 @@ def _build_msal_app(cache=None):
         config["azClientId"], authority=app.config["AUTHORITY"],
         client_credential=config["azClientSecret"], token_cache=cache)
 
+def _build_auth_code_flow(authority=None, scopes=None):
+    return _build_msal_app(authority=authority).initiate_auth_code_flow(
+        scopes or [],
+        redirect_uri=url_for("authorized", _external=True))
+        
 def _get_token_from_cache(scope=None):
     cache = _load_cache()  # This web app maintains one cache per session
     cca = _build_msal_app(cache)
