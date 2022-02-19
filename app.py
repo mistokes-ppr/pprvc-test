@@ -322,7 +322,7 @@ def graphcall():
     if not token:
         return redirect(url_for("login"))
     graph_data = requests.get(  # Use token to call downstream service
-        app.config["azEndpoint"],
+        config["azEndpoint"],
         headers={'Authorization': 'Bearer ' + token['access_token']},
         ).json()
     return render_template('display.html', result=graph_data)
