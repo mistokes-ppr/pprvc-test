@@ -25,19 +25,13 @@ cacheConfig = {
     "DEBUG": True,          # some Flask specific configs
     "CACHE_TYPE": "SimpleCache",  # Flask-Caching related configs
     "CACHE_DEFAULT_TIMEOUT": 300,
-   "CLIENT_SECRET": "61U7Q~B0qmpNP8~sWHn7_K1t1V1QPeCRiCtBA",
-    "AUTHORITY": "https://login.microsoftonline.com/patientprivacyrights.org",
-   "CLIENT_ID": "c0110ac6-c1c1-4827-aefc-9b1eccb45adb",
-    "ENDPOINT": "https://graph.microsoft.com/v1.0/users",
-    "SCOPE": ["User.Read"],
-    "REDIRECT_PATH": "/getAToken" ,
-    "SESSION_TYPE": "filesystem", 
+    "SESSION_TYPE": "filesystem"
 }
 app.config.from_mapping(cacheConfig)
 
 cache = Cache(app)
 
-app.secret_key = '61U7Q~B0qmpNP8~sWHn7_K1t1V1QPeCRiCtBA'
+app.secret_key = os.urandom(24).hex() #'61U7Q~B0qmpNP8~sWHn7_K1t1V1QPeCRiCtBA'
 
 config = json.load(open("./config.json"))
 
@@ -301,10 +295,10 @@ def index():
 def login():
     # Technically we could use empty list [] as scopes to do just sign in,
     # here we choose to also collect end user consent upfront
-    session["flow"] = _build_auth_code_flow(scopes=app.config["SCOPE"])
+    session["flow"] = _build_auth_code_flow(scopes=config["azScope"])
     return render_template("login.html", auth_url=session["flow"]["auth_uri"], version=msal.__version__)
 
-@app.route(app.config["REDIRECT_PATH"])  # Its absolute URL must match your app's redirect_uri set in AAD
+@app.route(config["azRedirectPath"])  # Its absolute URL must match your app's redirect_uri set in AAD
 def authorized():
     try:
         cache = _load_cache()
@@ -333,7 +327,7 @@ def graphcall():
     if not token:
         return redirect(url_for("login"))
     graph_data = requests.get(  # Use token to call downstream service
-        app.config["ENDPOINT"],
+        app.config["azEndpoint"],
         headers={'Authorization': 'Bearer ' + token['access_token']},
         ).json()
     return render_template('display.html', result=graph_data)
@@ -351,7 +345,7 @@ def _save_cache(cache):
 
 def _build_msal_app(cache=None):
     return msal.ConfidentialClientApplication(
-        config["azClientId"], authority=app.config["AUTHORITY"],
+        config["azClientId"], authority=config["azAuthority"],
         client_credential=config["azClientSecret"], token_cache=cache)
 
 def _build_auth_code_flow(scopes=None):
