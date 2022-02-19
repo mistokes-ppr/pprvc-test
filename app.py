@@ -66,9 +66,7 @@ if config["azCertificateName"] != "":
         }
     )    
 
-fI = open("./issuance_request_config.json",)
-issuanceConfig = json.load(fI)
-fI.close()  
+issuanceConfig = json.load(open("./issuance_request_config.json"))
 
 apiKey = str(uuid.uuid4())
 
@@ -165,9 +163,7 @@ def issuanceRequestStatus():
     else:
         return ""
 
-fP = open("./presentation_request_config.json",)
-presentationConfig = json.load(fP)
-fP.close()  
+presentationConfig = json.load(open("./presentation_request_config.json"))
 
 apiKey = str(uuid.uuid4())
 
@@ -201,7 +197,6 @@ def presentationRequest():
     response = Response( json.dumps(resp), status=200, mimetype='application/json')
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response
-
 
 @app.route("/api/verifier/presentation-request-callback", methods = ['POST'])
 def presentationRequestApiCallback():
@@ -276,7 +271,6 @@ def presentationResponseB2C():
         'userMessage': 'Verifiable Credentials not presented'
         }
     return Response( json.dumps(errmsg), status=409, mimetype='application/json')
-
 
 @app.route('/')
 def index():
