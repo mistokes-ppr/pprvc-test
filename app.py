@@ -279,11 +279,6 @@ def presentationResponseB2C():
 
 
 @app.route('/')
-#def root():
-#    varvalue="testing"
-#    return render_template('index.html')
-    #return app.send_static_file('index.html')
-
 def index():
     if not session.get("user"):
         return redirect(url_for("login"))
@@ -323,7 +318,7 @@ def logout():
 
 @app.route("/graphcall")
 def graphcall():
-    token = _get_token_from_cache(app.config["SCOPE"])
+    token = _get_token_from_cache(config["azScope"])
     if not token:
         return redirect(url_for("login"))
     graph_data = requests.get(  # Use token to call downstream service
