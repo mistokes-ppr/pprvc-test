@@ -22,7 +22,7 @@ from flask import Flask
 
 app = Flask(__name__, static_url_path='',static_folder='static') # Flask instance named app
 cacheConfig = {
-    "DEBUG": True,          # some Flask specific configs
+    "DEBUG": False,          # some Flask specific configs
     "CACHE_TYPE": "SimpleCache",  # Flask-Caching related configs
     "CACHE_DEFAULT_TIMEOUT": 300,
     "SESSION_TYPE": "filesystem"
